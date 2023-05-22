@@ -23,9 +23,14 @@ func run() error {
 
 	server := asemo.NewServer()
 
+	server.E.HidePort = true
 	server.SetPort(8081)
 	server.SetSendEmailHandler(
-		func(asemo.SendEmailRequest) asemo.SendEmailResponse {
+		func(req asemo.SendEmailRequest) asemo.SendEmailResponse {
+			sub := req.Content.Simple.Subject.Data
+			body := req.Content.Simple.Body.Text.Data
+			fmt.Printf("receive: [subject = '%v', body = '%v']\n", sub, body)
+
 			n := rand.Intn(1000000)
 			messageId := fmt.Sprintf("%06d", n)
 			return asemo.SendEmailResponse{
@@ -44,14 +49,16 @@ func run() error {
 
 	fmt.Println("Press 'q' to quit...")
 	for {
-		if s, err := scan(); err != nil {
+		s, err := scan()
+		if err != nil {
 			return err
-		} else if s == "q" {
+		}
+		if s == "q" {
 			fmt.Println("quit")
 			return nil
 		}
 
-		messageId, err := callSendEmail(ctx, client)
+		messageId, err := callSendEmail(ctx, client, s)
 		if err != nil {
 			return err
 		}
@@ -82,7 +89,7 @@ func setupClient(ctx context.Context) (*sesv2.Client, error) {
 	return client, nil
 }
 
-func callSendEmail(ctx context.Context, client *sesv2.Client) (string, error) {
+func callSendEmail(ctx context.Context, client *sesv2.Client, s string) (string, error) {
 	input := &sesv2.SendEmailInput{
 		FromEmailAddress: ptr("from@example.com"),
 		Destination: &types.Destination{
@@ -92,7 +99,7 @@ func callSendEmail(ctx context.Context, client *sesv2.Client) (string, error) {
 			Simple: &types.Message{
 				Body: &types.Body{
 					Text: &types.Content{
-						Data: ptr("hello ses"),
+						Data: ptr(fmt.Sprintf("hello %v", s)),
 					},
 				},
 				Subject: &types.Content{

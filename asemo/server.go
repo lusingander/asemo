@@ -7,7 +7,8 @@ import (
 )
 
 type Server struct {
-	E                *echo.Echo
+	E *echo.Echo
+
 	port             uint16
 	sendEmailHandler SendEmailHandler
 }
@@ -15,7 +16,6 @@ type Server struct {
 func NewServer() *Server {
 	e := echo.New()
 	e.HideBanner = true
-	e.HidePort = true
 	server := &Server{
 		E:                e,
 		port:             8080,
