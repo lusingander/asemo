@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -20,19 +21,50 @@ func main() {
 
 func run() error {
 
-	go asemo.Run()
+	server := asemo.NewServer()
 
-	messageId, err := callSendEmail()
+	server.SendEmailHandler = func(ser asemo.SendEmailRequest) asemo.SendEmailResponse {
+		n := rand.Intn(1000000)
+		messageId := fmt.Sprintf("%06d", n)
+		return asemo.SendEmailResponse{
+			MessageId: messageId,
+		}
+	}
+
+	go server.Run()
+
+	ctx := context.Background()
+	client, err := setupClient(ctx)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("success: messageId = %v\n", messageId)
 
-	return nil
+	fmt.Println("Press 'q' to quit...")
+	for {
+		if s, err := scan(); err != nil {
+			return err
+		} else if s == "q" {
+			fmt.Println("quit")
+			return nil
+		}
+
+		messageId, err := callSendEmail(ctx, client)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("success: messageId = %v\n", messageId)
+	}
 }
 
-func callSendEmail() (string, error) {
-	ctx := context.Background()
+func scan() (string, error) {
+	var s string
+	if _, err := fmt.Scan(&s); err != nil {
+		return "", err
+	}
+	return s, nil
+}
+
+func setupClient(ctx context.Context) (*sesv2.Client, error) {
 	endpointResolver := config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
 		func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{URL: "http://localhost:8080"}, nil
@@ -41,9 +73,13 @@ func callSendEmail() (string, error) {
 	credentialsProvider := config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("dummy", "dummy", "dummy"))
 	cfg, err := config.LoadDefaultConfig(ctx, endpointResolver, credentialsProvider)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	client := sesv2.NewFromConfig(cfg)
+	return client, nil
+}
+
+func callSendEmail(ctx context.Context, client *sesv2.Client) (string, error) {
 	input := &sesv2.SendEmailInput{
 		FromEmailAddress: ptr("from@example.com"),
 		Destination: &types.Destination{
