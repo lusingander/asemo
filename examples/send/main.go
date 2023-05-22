@@ -23,15 +23,18 @@ func run() error {
 
 	server := asemo.NewServer()
 
-	server.SendEmailHandler = func(ser asemo.SendEmailRequest) asemo.SendEmailResponse {
-		n := rand.Intn(1000000)
-		messageId := fmt.Sprintf("%06d", n)
-		return asemo.SendEmailResponse{
-			MessageId: messageId,
-		}
-	}
+	server.SetPort(8081)
+	server.SetSendEmailHandler(
+		func(asemo.SendEmailRequest) asemo.SendEmailResponse {
+			n := rand.Intn(1000000)
+			messageId := fmt.Sprintf("%06d", n)
+			return asemo.SendEmailResponse{
+				MessageId: messageId,
+			}
+		},
+	)
 
-	go server.Run()
+	go server.Start()
 
 	ctx := context.Background()
 	client, err := setupClient(ctx)
@@ -67,7 +70,7 @@ func scan() (string, error) {
 func setupClient(ctx context.Context) (*sesv2.Client, error) {
 	endpointResolver := config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
 		func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{URL: "http://localhost:8080"}, nil
+			return aws.Endpoint{URL: "http://localhost:8081"}, nil
 		},
 	))
 	credentialsProvider := config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("dummy", "dummy", "dummy"))

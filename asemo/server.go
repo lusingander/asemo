@@ -1,24 +1,38 @@
 package asemo
 
 import (
+	"fmt"
+
 	"github.com/labstack/echo/v4"
 )
 
 type Server struct {
 	E                *echo.Echo
-	SendEmailHandler func(SendEmailRequest) SendEmailResponse
+	port             uint16
+	sendEmailHandler SendEmailHandler
 }
 
 func NewServer() *Server {
 	e := echo.New()
+	e.HideBanner = true
+	e.HidePort = true
 	server := &Server{
 		E:                e,
-		SendEmailHandler: defaultSendEmailHandler,
+		port:             8080,
+		sendEmailHandler: defaultSendEmailHandler,
 	}
 	e.POST("/v2/email/outbound-emails", server.sendEmail)
 	return server
 }
 
-func (s *Server) Run() error {
-	return s.E.Start("localhost:8080")
+func (s *Server) Start() error {
+	return s.E.Start(fmt.Sprintf("localhost:%d", s.port))
+}
+
+func (s *Server) SetPort(port uint16) {
+	s.port = port
+}
+
+func (s *Server) SetSendEmailHandler(handler SendEmailHandler) {
+	s.sendEmailHandler = handler
 }

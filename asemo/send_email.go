@@ -8,6 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type SendEmailHandler func(SendEmailRequest) SendEmailResponse
+
 // https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendEmail.html
 func (s *Server) sendEmail(c echo.Context) error {
 	var req SendEmailRequest
@@ -15,7 +17,7 @@ func (s *Server) sendEmail(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusBadRequest, "bad request") // fixme
 	}
-	resp := s.SendEmailHandler(req)
+	resp := s.sendEmailHandler(req)
 	return c.JSON(http.StatusOK, resp)
 }
 

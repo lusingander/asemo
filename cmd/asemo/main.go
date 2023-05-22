@@ -3,7 +3,7 @@ package main
 import "github.com/lusingander/asemo/asemo"
 
 func run() error {
-	return asemo.NewServer().Run()
+	return asemo.NewServer().Start()
 }
 
 func main() {
