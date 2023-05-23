@@ -27,6 +27,8 @@ func run() error {
 	app.server.SetPort(args.port)
 	app.server.SetSendEmailHandler(app.sendEmailHandler)
 
+	app.server.E.GET("/messages/:id", app.getMessageHandler)
+
 	return app.server.Start()
 }
 
