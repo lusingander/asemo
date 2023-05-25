@@ -1,3 +1,5 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/lusingander/asemo.svg)](https://pkg.go.dev/github.com/lusingander/asemo)
+
 # asemo
 
 Aws SEs MOck
