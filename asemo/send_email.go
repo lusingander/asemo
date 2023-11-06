@@ -15,7 +15,7 @@ func (s *Server) sendEmail(c echo.Context) error {
 	var req SendEmailRequest
 	err := c.Bind(&req)
 	if err != nil {
-		return sendEmailErrorResponse(c, BadRequestException)
+		return sendEmailErrorResponse(c, &BadRequestException)
 	}
 	resp, e := s.sendEmailHandler(&req)
 	if e != nil {
@@ -109,101 +109,101 @@ type SendEmailError struct {
 var (
 	// common errors
 	// https://docs.aws.amazon.com/ses/latest/APIReference-V2/CommonErrors.html
-	AccessDeniedException = &SendEmailError{
+	AccessDeniedException = SendEmailError{
 		StatusCode: 403,
 		ErrorName:  "AccessDeniedException",
 	}
-	ExpiredTokenException = &SendEmailError{
+	ExpiredTokenException = SendEmailError{
 		StatusCode: 403,
 		ErrorName:  "ExpiredTokenException",
 	}
-	IncompleteSignature = &SendEmailError{
+	IncompleteSignature = SendEmailError{
 		StatusCode: 403,
 		ErrorName:  "IncompleteSignature",
 	}
-	InternalFailure = &SendEmailError{
+	InternalFailure = SendEmailError{
 		StatusCode: 500,
 		ErrorName:  "InternalFailure",
 	}
-	MalformedHttpRequestException = &SendEmailError{
+	MalformedHttpRequestException = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "MalformedHttpRequestException",
 	}
-	NotAuthorized = &SendEmailError{
+	NotAuthorized = SendEmailError{
 		StatusCode: 401,
 		ErrorName:  "NotAuthorized",
 	}
-	OptInRequired = &SendEmailError{
+	OptInRequired = SendEmailError{
 		StatusCode: 403,
 		ErrorName:  "OptInRequired",
 	}
-	RequestAbortedException = &SendEmailError{
+	RequestAbortedException = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "RequestAbortedException",
 	}
-	RequestEntityTooLargeException = &SendEmailError{
+	RequestEntityTooLargeException = SendEmailError{
 		StatusCode: 413,
 		ErrorName:  "RequestEntityTooLargeException",
 	}
-	RequestExpired = &SendEmailError{
+	RequestExpired = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "RequestExpired",
 	}
-	RequestTimeoutException = &SendEmailError{
+	RequestTimeoutException = SendEmailError{
 		StatusCode: 408,
 		ErrorName:  "RequestTimeoutException",
 	}
-	ServiceUnavailable = &SendEmailError{
+	ServiceUnavailable = SendEmailError{
 		StatusCode: 503,
 		ErrorName:  "ServiceUnavailable",
 	}
-	ThrottlingException = &SendEmailError{
+	ThrottlingException = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "ThrottlingException",
 	}
-	UnrecognizedClientException = &SendEmailError{
+	UnrecognizedClientException = SendEmailError{
 		StatusCode: 403,
 		ErrorName:  "UnrecognizedClientException",
 	}
-	UnknownOperationException = &SendEmailError{
+	UnknownOperationException = SendEmailError{
 		StatusCode: 404,
 		ErrorName:  "UnknownOperationException",
 	}
-	ValidationError = &SendEmailError{
+	ValidationError = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "ValidationError",
 	}
 
 	// special errors
-	AccountSuspendedException = &SendEmailError{
+	AccountSuspendedException = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "AccountSuspendedException",
 	}
-	BadRequestException = &SendEmailError{
+	BadRequestException = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "BadRequestException",
 	}
-	LimitExceededException = &SendEmailError{
+	LimitExceededException = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "LimitExceededException",
 	}
-	MailFromDomainNotVerifiedException = &SendEmailError{
+	MailFromDomainNotVerifiedException = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "MailFromDomainNotVerifiedException",
 	}
-	MessageRejected = &SendEmailError{
+	MessageRejected = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "MessageRejected",
 	}
-	NotFoundException = &SendEmailError{
+	NotFoundException = SendEmailError{
 		StatusCode: 404,
 		ErrorName:  "NotFoundException",
 	}
-	SendingPausedException = &SendEmailError{
+	SendingPausedException = SendEmailError{
 		StatusCode: 400,
 		ErrorName:  "SendingPausedException",
 	}
-	TooManyRequestsException = &SendEmailError{
+	TooManyRequestsException = SendEmailError{
 		StatusCode: 429,
 		ErrorName:  "TooManyRequestsException",
 	}
