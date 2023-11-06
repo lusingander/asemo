@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type SendEmailHandler func(SendEmailRequest) SendEmailResponse
+type SendEmailHandler func(*SendEmailRequest) (*SendEmailResponse, *SendEmailError)
 
 // https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendEmail.html
 func (s *Server) sendEmail(c echo.Context) error {
@@ -17,7 +17,11 @@ func (s *Server) sendEmail(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusBadRequest, "bad request") // fixme
 	}
-	resp := s.sendEmailHandler(req)
+	resp, e := s.sendEmailHandler(&req)
+	if e != nil {
+		c.Response().Header().Set("x-amzn-errortype", e.ErrorName)
+		return c.JSON(e.StatusCode, e.SesErrorResponse)
+	}
 	return c.JSON(http.StatusOK, resp)
 }
 
@@ -73,12 +77,23 @@ type SendEmailResponse struct {
 	MessageId string `json:"MessageId"`
 }
 
+type SesErrorResponse struct {
+	Message string `json:"message"`
+}
+
 var defaultSendEmailCounter uint32
 
-func defaultSendEmailHandler(req SendEmailRequest) SendEmailResponse {
+func defaultSendEmailHandler(req *SendEmailRequest) (*SendEmailResponse, *SendEmailError) {
 	atomic.AddUint32(&defaultSendEmailCounter, 1)
 	messageId := fmt.Sprintf("%v", defaultSendEmailCounter)
-	return SendEmailResponse{
+	resp := &SendEmailResponse{
 		MessageId: messageId,
 	}
+	return resp, nil
+}
+
+type SendEmailError struct {
+	StatusCode int
+	ErrorName  string
+	SesErrorResponse
 }

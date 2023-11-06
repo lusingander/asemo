@@ -6,7 +6,7 @@ import (
 	"github.com/lusingander/asemo/asemo"
 )
 
-func (a *application) sendEmailHandler(req asemo.SendEmailRequest) asemo.SendEmailResponse {
+func (a *application) sendEmailHandler(req *asemo.SendEmailRequest) (*asemo.SendEmailResponse, *asemo.SendEmailError) {
 	messageId, _ := generateMessageId()
 
 	message := &message{
@@ -24,7 +24,8 @@ func (a *application) sendEmailHandler(req asemo.SendEmailRequest) asemo.SendEma
 
 	a.messageRepository.set(messageId, message)
 
-	return asemo.SendEmailResponse{
+	resp := &asemo.SendEmailResponse{
 		MessageId: message.messageId,
 	}
+	return resp, nil
 }

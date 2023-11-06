@@ -51,11 +51,11 @@ $ curl -s http://localhost:8080/messages/6d2aed72-62d8-4839-8ee1-19c06751077d | 
 server := asemo.NewServer()
 
 server.SetSendEmailHandler(
-	func(req asemo.SendEmailRequest) asemo.SendEmailResponse {
+	func(req *asemo.SendEmailRequest) (*asemo.SendEmailResponse, *asemo.SendEmailError) {
 		fmt.Printf("receive: [subject = '%v']\n", req.Content.Simple.Subject.Data)
-		return asemo.SendEmailResponse{
+		return &asemo.SendEmailResponse{
 			MessageId: "1",
-		}
+		}, nil
 	},
 )
 

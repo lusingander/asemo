@@ -26,16 +26,17 @@ func run() error {
 	server.E.HidePort = true
 	server.SetPort(8081)
 	server.SetSendEmailHandler(
-		func(req asemo.SendEmailRequest) asemo.SendEmailResponse {
+		func(req *asemo.SendEmailRequest) (*asemo.SendEmailResponse, *asemo.SendEmailError) {
 			sub := req.Content.Simple.Subject.Data
 			body := req.Content.Simple.Body.Text.Data
 			fmt.Printf("receive: [subject = '%v', body = '%v']\n", sub, body)
 
 			n := rand.Intn(1000000)
 			messageId := fmt.Sprintf("%06d", n)
-			return asemo.SendEmailResponse{
+			resp := &asemo.SendEmailResponse{
 				MessageId: messageId,
 			}
+			return resp, nil
 		},
 	)
 
