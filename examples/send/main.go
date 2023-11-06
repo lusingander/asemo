@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -30,6 +31,11 @@ func run() error {
 			sub := req.Content.Simple.Subject.Data
 			body := req.Content.Simple.Body.Text.Data
 			fmt.Printf("receive: [subject = '%v', body = '%v']\n", sub, body)
+
+			// return the error information if the body contains an error name
+			if e := findError(body); e != nil {
+				return nil, e
+			}
 
 			n := rand.Intn(1000000)
 			messageId := fmt.Sprintf("%06d", n)
@@ -59,11 +65,11 @@ func run() error {
 			return nil
 		}
 
-		messageId, err := callSendEmail(ctx, client, s)
-		if err != nil {
-			return err
+		if messageId, err := callSendEmail(ctx, client, s); err == nil {
+			fmt.Printf("success: messageId = %v\n", messageId)
+		} else {
+			fmt.Printf("error: %v\n", err)
 		}
-		fmt.Printf("success: messageId = %v\n", messageId)
 	}
 }
 
@@ -114,6 +120,41 @@ func callSendEmail(ctx context.Context, client *sesv2.Client, s string) (string,
 		return "", err
 	}
 	return *res.MessageId, nil
+}
+
+func findError(s string) *asemo.SendEmailError {
+	m := map[string]*asemo.SendEmailError{
+		"AccessDeniedException":              asemo.AccessDeniedException,
+		"ExpiredTokenException":              asemo.ExpiredTokenException,
+		"IncompleteSignature":                asemo.IncompleteSignature,
+		"InternalFailure":                    asemo.InternalFailure,
+		"MalformedHttpRequestException":      asemo.MalformedHttpRequestException,
+		"NotAuthorized":                      asemo.NotAuthorized,
+		"OptInRequired":                      asemo.OptInRequired,
+		"RequestAbortedException":            asemo.RequestAbortedException,
+		"RequestEntityTooLargeException":     asemo.RequestEntityTooLargeException,
+		"RequestExpired":                     asemo.RequestExpired,
+		"RequestTimeoutException":            asemo.RequestTimeoutException,
+		"ServiceUnavailable":                 asemo.ServiceUnavailable,
+		"ThrottlingException":                asemo.ThrottlingException,
+		"UnrecognizedClientException":        asemo.UnrecognizedClientException,
+		"UnknownOperationException":          asemo.UnknownOperationException,
+		"ValidationError":                    asemo.ValidationError,
+		"AccountSuspendedException":          asemo.AccountSuspendedException,
+		"BadRequestException":                asemo.BadRequestException,
+		"LimitExceededException":             asemo.LimitExceededException,
+		"MailFromDomainNotVerifiedException": asemo.MailFromDomainNotVerifiedException,
+		"MessageRejected":                    asemo.MessageRejected,
+		"NotFoundException":                  asemo.NotFoundException,
+		"SendingPausedException":             asemo.SendingPausedException,
+		"TooManyRequestsException":           asemo.TooManyRequestsException,
+	}
+	for k, v := range m {
+		if strings.Contains(s, k) {
+			return v
+		}
+	}
+	return nil
 }
 
 func ptr[T any](v T) *T {
