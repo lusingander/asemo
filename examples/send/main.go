@@ -22,6 +22,7 @@ func main() {
 
 func run() error {
 
+	// mock server
 	server := asemo.NewServer()
 
 	server.E.HidePort = true
@@ -30,13 +31,14 @@ func run() error {
 		func(req *asemo.SendEmailRequest) (*asemo.SendEmailResponse, *asemo.SendEmailError) {
 			sub := req.Content.Simple.Subject.Data
 			body := req.Content.Simple.Body.Text.Data
-			fmt.Printf("receive: [subject = '%v', body = '%v']\n", sub, body)
+			fmt.Printf("[server] received request: subject = '%v', body = '%v'\n", sub, body)
 
 			// return the error information if the body contains an error name
 			if e := findError(body); e != nil {
 				return nil, e
 			}
 
+			// generate random message id
 			n := rand.Intn(1000000)
 			messageId := fmt.Sprintf("%06d", n)
 			resp := &asemo.SendEmailResponse{
@@ -48,6 +50,7 @@ func run() error {
 
 	go server.Start()
 
+	// sender
 	ctx := context.Background()
 	client, err := setupClient(ctx)
 	if err != nil {
@@ -56,6 +59,7 @@ func run() error {
 
 	fmt.Println("Press 'q' to quit...")
 	for {
+		fmt.Printf(">> ")
 		s, err := scan()
 		if err != nil {
 			return err
@@ -66,9 +70,9 @@ func run() error {
 		}
 
 		if messageId, err := callSendEmail(ctx, client, s); err == nil {
-			fmt.Printf("success: messageId = %v\n", messageId)
+			fmt.Printf("[sender] success: messageId = %v\n", messageId)
 		} else {
-			fmt.Printf("error: %v\n", err)
+			fmt.Printf("[sender] error: %v\n", err)
 		}
 	}
 }
