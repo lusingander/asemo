@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,12 +26,22 @@ func (s *Server) sendEmail(c echo.Context) error {
 }
 
 func sendEmailSuccessResponse(c echo.Context, resp *SendEmailResponse) error {
+	c.Response().Header().Set("x-amzn-RequestId", generateRequestId())
 	return c.JSON(http.StatusOK, resp)
 }
 
 func sendEmailErrorResponse(c echo.Context, e *SendEmailError) error {
-	c.Response().Header().Set("x-amzn-errortype", e.ErrorName)
+	c.Response().Header().Set("x-amzn-RequestId", generateRequestId())
+	c.Response().Header().Set("x-amzn-ErrorType", e.ErrorName)
 	return c.JSON(e.StatusCode, e.SesErrorResponse)
+}
+
+func generateRequestId() string {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return ""
+	}
+	return id.String()
 }
 
 type SendEmailRequest struct {
