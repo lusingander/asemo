@@ -29,7 +29,7 @@ Then the mock server will start at http://localhost:8080.
 Sent messages can be referenced through the API.
 
 ```
-$ curl -s http://localhost:8080/messages/6d2aed72-62d8-4839-8ee1-19c06751077d | jq .
+$ curl -s http://localhost:8080/api/messages/6d2aed72-62d8-4839-8ee1-19c06751077d | jq .
 {
   "message_id": "6d2aed72-62d8-4839-8ee1-19c06751077d",
   "from": "from@example.com",
