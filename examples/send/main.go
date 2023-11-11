@@ -14,6 +14,10 @@ import (
 	"github.com/lusingander/asemo/asemo"
 )
 
+const (
+	port = 8081
+)
+
 func main() {
 	if err := run(); err != nil {
 		panic(err)
@@ -26,7 +30,7 @@ func run() error {
 	server := asemo.NewServer()
 
 	server.E.HidePort = true
-	server.SetPort(8081)
+	server.SetPort(port)
 	server.SetSendEmailHandler(
 		func(req *asemo.SendEmailRequest) (*asemo.SendEmailResponse, *asemo.SendEmailError) {
 			sub := req.Content.Simple.Subject.Data
@@ -88,7 +92,7 @@ func scan() (string, error) {
 func setupClient(ctx context.Context) (*sesv2.Client, error) {
 	endpointResolver := config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
 		func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{URL: "http://localhost:8081"}, nil
+			return aws.Endpoint{URL: fmt.Sprintf("http://localhost:%d", port)}, nil
 		},
 	))
 	credentialsProvider := config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("dummy", "dummy", "dummy"))
