@@ -11,37 +11,31 @@ import (
 
 type SendEmailHandler func(*SendEmailRequest) (*SendEmailResponse, *SendEmailError)
 
+type RequestIdGenerator func(*SendEmailResponse, *SendEmailError) string
+
 // https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendEmail.html
 func (s *Server) sendEmail(c echo.Context) error {
 	var req SendEmailRequest
 	err := c.Bind(&req)
 	if err != nil {
-		return sendEmailErrorResponse(c, &BadRequestException)
+		return s.sendEmailErrorResponse(c, &BadRequestException)
 	}
 	resp, e := s.sendEmailHandler(&req)
 	if e != nil {
-		return sendEmailErrorResponse(c, e)
+		return s.sendEmailErrorResponse(c, e)
 	}
-	return sendEmailSuccessResponse(c, resp)
+	return s.sendEmailSuccessResponse(c, resp)
 }
 
-func sendEmailSuccessResponse(c echo.Context, resp *SendEmailResponse) error {
-	c.Response().Header().Set("x-amzn-RequestId", generateRequestId())
+func (s *Server) sendEmailSuccessResponse(c echo.Context, resp *SendEmailResponse) error {
+	c.Response().Header().Set("x-amzn-RequestId", s.requestIdGenerator(resp, nil))
 	return c.JSON(http.StatusOK, resp)
 }
 
-func sendEmailErrorResponse(c echo.Context, e *SendEmailError) error {
-	c.Response().Header().Set("x-amzn-RequestId", generateRequestId())
+func (s *Server) sendEmailErrorResponse(c echo.Context, e *SendEmailError) error {
+	c.Response().Header().Set("x-amzn-RequestId", s.requestIdGenerator(nil, e))
 	c.Response().Header().Set("x-amzn-ErrorType", e.ErrorName)
 	return c.JSON(e.StatusCode, e.SesErrorResponse)
-}
-
-func generateRequestId() string {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return ""
-	}
-	return id.String()
 }
 
 type SendEmailRequest struct {
@@ -98,17 +92,6 @@ type SendEmailResponse struct {
 
 type SesErrorResponse struct {
 	Message string `json:"message"`
-}
-
-var defaultSendEmailCounter uint32
-
-func defaultSendEmailHandler(req *SendEmailRequest) (*SendEmailResponse, *SendEmailError) {
-	atomic.AddUint32(&defaultSendEmailCounter, 1)
-	messageId := fmt.Sprintf("%v", defaultSendEmailCounter)
-	resp := &SendEmailResponse{
-		MessageId: messageId,
-	}
-	return resp, nil
 }
 
 type SendEmailError struct {
@@ -219,3 +202,22 @@ var (
 		ErrorName:  "TooManyRequestsException",
 	}
 )
+
+var defaultSendEmailCounter uint32
+
+func defaultSendEmailHandler(req *SendEmailRequest) (*SendEmailResponse, *SendEmailError) {
+	atomic.AddUint32(&defaultSendEmailCounter, 1)
+	messageId := fmt.Sprintf("%v", defaultSendEmailCounter)
+	resp := &SendEmailResponse{
+		MessageId: messageId,
+	}
+	return resp, nil
+}
+
+func defaultRequestIdGenerator(*SendEmailResponse, *SendEmailError) string {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return ""
+	}
+	return id.String()
+}

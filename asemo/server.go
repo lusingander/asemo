@@ -9,17 +9,19 @@ import (
 type Server struct {
 	E *echo.Echo
 
-	port             uint16
-	sendEmailHandler SendEmailHandler
+	port               uint16
+	sendEmailHandler   SendEmailHandler
+	requestIdGenerator RequestIdGenerator
 }
 
 func NewServer() *Server {
 	e := echo.New()
 	e.HideBanner = true
 	server := &Server{
-		E:                e,
-		port:             8080,
-		sendEmailHandler: defaultSendEmailHandler,
+		E:                  e,
+		port:               8080,
+		sendEmailHandler:   defaultSendEmailHandler,
+		requestIdGenerator: defaultRequestIdGenerator,
 	}
 	e.POST("/v2/email/outbound-emails", server.sendEmail)
 	return server
@@ -35,4 +37,8 @@ func (s *Server) SetPort(port uint16) {
 
 func (s *Server) SetSendEmailHandler(handler SendEmailHandler) {
 	s.sendEmailHandler = handler
+}
+
+func (s *Server) SetRequestIdGenerator(generator RequestIdGenerator) {
+	s.requestIdGenerator = generator
 }
