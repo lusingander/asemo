@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -12,9 +14,11 @@ func (a *application) getMessageHandler(c echo.Context) error {
 
 	message := a.messageRepository.get(messageId)
 	if message == nil {
+		errorMsg := fmt.Sprintf("message not found (id = %s)", messageId)
 		resp := &errorResponse{
-			Message: "message not found",
+			Message: errorMsg,
 		}
+		log.Println(errorMsg)
 		return c.JSON(http.StatusNotFound, resp)
 	}
 
