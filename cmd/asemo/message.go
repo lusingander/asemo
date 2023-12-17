@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"sync"
 	"time"
 
@@ -53,4 +54,13 @@ func (r *messageRepository) get(messageId string) *message {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.m[messageId]
+}
+
+func (r *messageRepository) getAll() []*message {
+	ms := make([]*message, 0, len(r.m))
+	for _, m := range r.m {
+		ms = append(ms, m)
+	}
+	sort.Slice(ms, func(i, j int) bool { return ms[i].receivedAt.Before(ms[j].receivedAt) })
+	return ms
 }
